@@ -1,88 +1,92 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection.Emit;
 using System.Windows.Forms;
 
 namespace MathQuiz
 {
     public partial class Form1 : Form
-    {  // Create a Random object called randomizer 
-       // to generate random numbers.
-        Random randomizer = new Random();
-        int addend1;
-        int addend2;
-        int minuend;
-        int subtrahend;
+    {
+        private int score = 0;
+        private Random rand = new Random();
 
-        // These integer variables store the numbers 
-        // for the multiplication problem. 
-        int multiplicand;
-        int multiplier;
-
-        // These integer variables store the numbers 
-        // for the division problem. 
-        int dividend;
-        int divisor;
         public Form1()
         {
             InitializeComponent();
-        }
-        /// <summary>
-        /// Start the quiz by filling in all of the problems
-        /// and starting the timer.
-        /// </summary>
-        public void StartTheQuiz()
-        {
-            // Fill in the addition problem.
-            // Generate two random numbers to add.
-            // Store the values in the variables 'addend1' and 'addend2'.
-            addend1 = randomizer.Next(51);
-            addend2 = randomizer.Next(51);
-
-            // Convert the two randomly generated numbers
-            // into strings so that they can be displayed
-            // in the label controls.
-            plusLeftLabel.Text = addend1.ToString();
-            plusRightLabel.Text = addend2.ToString();
-
-            // 'sum' is the name of the NumericUpDown control.
-            // This step makes sure its value is zero before
-            // adding any values to it.
-            sum.Value = 0;
-            // Fill in the subtraction problem.
-            minuend = randomizer.Next(1, 101);
-            subtrahend = randomizer.Next(1, minuend);
-            minusLeftLabel.Text = minuend.ToString();
-            minusRightLabel.Text = subtrahend.ToString();
-            difference.Value = 0;
-
-            // Fill in the multiplication problem.
-            multiplicand = randomizer.Next(2, 11);
-            multiplier = randomizer.Next(2, 11);
-            timesLeftLabel.Text = multiplicand.ToString();
-            timesRightLabel.Text = multiplier.ToString();
-            product.Value = 0;
-
-            // Fill in the division problem.
-            divisor = randomizer.Next(2, 11);
-            int temporaryQuotient = randomizer.Next(2, 11);
-            dividend = divisor * temporaryQuotient;
-            dividedLeftLabel.Text = dividend.ToString();
-            dividedRightLabel.Text = divisor.ToString();
-            quotient.Value = 0;
-
+            startButton.Click += StartButton_Click;
         }
 
-        private void startButton_Click(object sender, EventArgs e)
+        private void StartButton_Click(object sender, EventArgs e)
         {
-            StartTheQuiz();
-            startButton.Enabled = false;
+            // Reset score
+            score = 0;
+
+            // Start the quiz
+            for (int i = 1; i <= 5; i++)
+            {
+                // Generate random numbers for the question
+                int num1 = rand.Next(1, 11); // Random number between 1 and 10
+                int num2 = rand.Next(1, 11); // Random number between 1 and 10
+                string op = GetOperatorSymbol(); // Random operator
+
+                // Present the question based on operation selected
+                double answer = 0;
+                switch (op)
+                {
+                    case "+":
+                        answer = num1 + num2;
+                        break;
+                    case "-":
+                        answer = num1 - num2;
+                        break;
+                    case "*":
+                        answer = num1 * num2;
+                        break;
+                    case "÷":
+                        if (num2 != 0)
+                            answer = (double)num1 / num2;
+                        else
+                            continue; // Skip this question if dividing by zero
+                        break;
+                }
+
+                // Update labels with generated numbers
+                leftNumLabel.Text = num1.ToString();
+                rightNumLabel.Text = num2.ToString();
+                opLabel.Text = op;
+
+                // Ask the user for the answer
+                if (double.TryParse(userAnswerTextBox.Text, out double userAnswer))
+                {
+                    if (Math.Abs(userAnswer - answer) < 0.0001)
+                    {
+                        MessageBox.Show("Correct!");
+                        score++;
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Incorrect. The correct answer is {answer}.");
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Invalid input. Please enter a valid number.");
+                }
+            }
+
+            // Display final score
+            MessageBox.Show($"Quiz complete! Your score is {score}/5.");
+        }
+
+        private string GetOperatorSymbol()
+        {
+            switch (rand.Next(1, 5))
+            {
+                case 1: return "+";
+                case 2: return "-";
+                case 3: return "*";
+                case 4: return "÷";
+                default: return "+";
+            }
         }
     }
-
-    }
+}
